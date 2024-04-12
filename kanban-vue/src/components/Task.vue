@@ -27,9 +27,10 @@ export default {
     onDragStartHandler(e) {
       this.handleDragStart(e, { tableIndex: this.tableIndex, taskIndex: this.taskIndex });
     },
-    onDragEnterHandler() {
+    onDragEnterHandler(event) {
       if (this.dragging) {
-        this.handleDragEnter(null, { tableIndex: this.tableIndex, taskIndex: this.taskIndex });
+        console.log(this.task);
+        this.handleDragEnter(event, { tableIndex: this.tableIndex, taskIndex: this.taskIndex });
       }
     }
   }

@@ -3,10 +3,16 @@
     <div class="table-title" :style="{ backgroundColor: tableTitleColor }">
       <h2>{{ status }}</h2>
     </div>
-    <div class="table-content" @dragover="setHighlighted(true)" @dragleave="setHighlighted(false)">
-      <TaskComponent v-for="(task, taskIndex) in tasks.slice(0, getDisplayedTasksCount())" :key="task.id"
-        :task="task" :tableIndex="tableIndex" :taskIndex="taskIndex" :dragging="dragging"
-        @handleDragStart="handleDragStart" @handleDragEnter="handleDragEnter" :getStyles="getStyles" />
+    <div class="table-content" @dragover.prevent @dragleave="setHighlighted(false)">
+      <TaskComponent v-for="(task, taskIndex) in tasks.slice(0, getDisplayedTasksCount())" 
+        :key="task.id"
+        :task="task" 
+        :tableIndex="tableIndex" 
+        :taskIndex="taskIndex" 
+        :dragging="dragging"
+        :handleDragStart="handleDragStart" 
+        :handleDragEnter="handleDragEnter" 
+        :getStyles="getStyles" />
       <button v-if="getDisplayedTasksCount() < tasks.length" @click="handleLoadMore" class="load-more">Load More</button>
     </div>
   </div>

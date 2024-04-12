@@ -2,10 +2,15 @@
   <div class="board-container">
     <div class="container">
       <div class="board-content">
-        <Column v-for="(table, tableIndex) in dataLists" :key="table.id"
-          :status="table.status" :tasks="table.tasks" :tableIndex="tableIndex"
-          :dragging="dragging" @handleDragEnter="handleDragEnter"
-          @handleDragStart="handleDragStart" :getStyles="getStyles" />
+        <Column v-for="(table, tableIndex) in dataLists" 
+          :key="table.id"
+          :status="table.status" 
+          :tasks="table.tasks" 
+          :tableIndex="tableIndex"
+          :dragging="dragging" 
+          :handleDragEnter="handleDragEnter"
+          :handleDragStart="handleDragStart" 
+          :getStyles="getStyles" />
       </div>
     </div>
   </div>
@@ -33,7 +38,7 @@ export default {
 
     const handleDragStart = (event, task) => {
       dragItem.value = task;
-      dragNode.value = event.target;
+      dragNode.value = event.target.parentNode;
       if (dragNode.value) {
         dragNode.value.addEventListener('dragend', handleDragEnd);
       }
@@ -43,21 +48,27 @@ export default {
     };
 
     const handleDragEnter = (event, task) => {
-      const currentItem = dragItem.value;
-      const draggedTask = dataLists.value[currentItem.tableIndex].tasks[currentItem.taskIndex];
-      
-      if (event.target !== dragNode.value) {
-        if (dataLists.value[task.tableIndex].status === StatusEnum.FINAL && draggedTask.id % 2 === 0) {
-          return; 
-        }
+  const currentItem = dragItem.value;
+  if (!currentItem || !task) return;
 
-        const newList = JSON.parse(JSON.stringify(dataLists.value));
-        const removedTask = newList[currentItem.tableIndex].tasks.splice(currentItem.taskIndex, 1)[0];
-        newList[task.tableIndex].tasks.splice(task.taskIndex, 0, removedTask);
-        dragItem.value = { ...currentItem, tableIndex: task.tableIndex, taskIndex: task.taskIndex };
-        dataLists.value = newList;
-      }
-    };
+  const draggedTask = dataLists.value[currentItem.tableIndex].tasks[currentItem.taskIndex];
+
+  if (task.tableIndex === undefined || task.taskIndex === undefined) return;
+
+  if (dataLists.value[task.tableIndex].status === StatusEnum.FINAL && draggedTask.id % 2 === 0) {
+    return;
+  }
+
+  const newList = JSON.parse(JSON.stringify(dataLists.value));
+  const removedTask = newList[currentItem.tableIndex].tasks.splice(currentItem.taskIndex, 1)[0];
+  newList[task.tableIndex].tasks.splice(task.taskIndex, 0, removedTask);
+  dragItem.value = { ...currentItem, tableIndex: task.tableIndex, taskIndex: task.taskIndex };
+  dataLists.value = newList;
+  
+};
+
+
+
 
     const handleDragEnd = () => {
       dragging.value = false;
@@ -66,12 +77,13 @@ export default {
       }
       dragItem.value = null;
       dragNode.value = null;
+      
     };
 
     const getStyles = (task) => {
       const currentItem = dragItem.value;
       if (currentItem && currentItem.tableIndex === task.tableIndex && currentItem.taskIndex === task.taskIndex) {
-        return 'current single-task';
+        return 'current';
       }
       return 'single-task';
     };
