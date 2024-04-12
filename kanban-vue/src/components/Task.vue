@@ -32,6 +32,10 @@ export default {
         console.log(this.task);
         this.handleDragEnter(event, { tableIndex: this.tableIndex, taskIndex: this.taskIndex });
       }
+    },
+    onDropHandler() {
+      // Hiq klasën "current" kur task-u bëhet drop
+      this.$refs.task.classList.remove('current');
     }
   }
 };
