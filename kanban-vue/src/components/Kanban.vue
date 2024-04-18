@@ -10,8 +10,7 @@
           :dragging="dragging" 
           :handleDragEnter="handleDragEnter"
           :handleDragStart="handleDragStart" 
-          :getStyles="getStyles" 
-          @drop="handledrop" />
+          :getStyles="getStyles" />
       </div>
     </div>
   </div>
@@ -23,7 +22,7 @@ import Column from './Column.vue';
 import { StatusEnum } from '../types/index'; 
 
 export default {
-  name: "the-kanban",
+  name:"the-kanban",
   props: {
     data: Array
   },
@@ -33,10 +32,11 @@ export default {
   setup(props) {
     const dataLists = ref(props.data);
     const dragging = ref(false);
+
     const dragItem = ref(null);
     const dragNode = ref(null);
 
-    function handleDragStart(event, task) {
+    function handleDragStart (event, task)  {
       dragItem.value = task;
       dragNode.value = event.target;
       if (dragNode.value) {
@@ -47,67 +47,51 @@ export default {
       }, 0);
     }
 
-    function handleDragEnter(event, task) {
-      const currentItem = dragItem.value;
-      if (event.target !== dragNode.value) {
-        const newList = JSON.parse(JSON.stringify(dataLists.value));
-        const removedTask = newList[currentItem.tableIndex].tasks.splice(currentItem.taskIndex, 1)[0];
-        newList[task.tableIndex].tasks.splice(task.taskIndex, 0, removedTask);
-        dragItem.value = { ...currentItem, tableIndex: task.tableIndex, taskIndex: task.taskIndex };
-        dataLists.value = newList;
-      }
+    function handleDragEnter (event, task) {
+  const currentItem = dragItem.value;
+
+  const draggedTask = dataLists.value[currentItem.tableIndex].tasks[currentItem.taskIndex];
+
+  if (event.target !== dragNode.value) {
+    if (dataLists.value[task.tableIndex].status === StatusEnum.FINAL && draggedTask.id % 2 === 0) {
+      return;
     }
 
-    function handledrop(event, task) {
-  const currentItem = dragItem.value;
-  if (currentItem && task && task.tableIndex !== undefined) {
-    const draggedTask = dataLists.value[currentItem.tableIndex].tasks[currentItem.taskIndex];
-    if (event.target !== dragNode.value) {
-      if (dataLists.value[task.tableIndex].status === StatusEnum.FINAL &&
-          draggedTask.id % 2 === 0) {
-            return;
-        // Refuse dropping on the final column for tasks with even number id
-        // Move the task back to its original column
-        // const newList = JSON.parse(JSON.stringify(dataLists.value));
-        // const removedTask = newList[currentItem.tableIndex].tasks.splice(currentItem.taskIndex, 1)[0];
-        // newList[currentItem.tableIndex].tasks.splice(currentItem.taskIndex, 0, removedTask);
-        // dataLists.value = newList;
-      } else {
-        // Allow dropping on other columns
-        handleDragEnter(event, task);
-      }
-    }
+    const newList = JSON.parse(JSON.stringify(dataLists.value));
+    const removedTask = newList[currentItem.tableIndex].tasks.splice(currentItem.taskIndex, 1)[0];
+    newList[task.tableIndex].tasks.splice(task.taskIndex, 0, removedTask);
+    dragItem.value = { ...currentItem, tableIndex: task.tableIndex, taskIndex: task.taskIndex };
+    dataLists.value = newList;
   }
 }
 
-    function handleDragEnd() {
+    function handleDragEnd () {
       dragging.value = false;
       if (dragNode.value) {
         dragNode.value.removeEventListener('dragend', handleDragEnd);
       }
       dragItem.value = null;
       dragNode.value = null;
+      
     }
 
     const getStyles = (task) => {
       const currentItem = dragItem.value;
       if (currentItem && currentItem.tableIndex === task.tableIndex && currentItem.taskIndex === task.taskIndex) {
         return 'current single-task';
-      }
-      return 'single-task';
-    };
+    }
+    return 'single-task';
+  };
 
     return {
       dataLists,
       dragging,
       handleDragEnter,
       handleDragStart,
-      handledrop,
       getStyles
     };
   }
 };
-
 </script>
   
   <style scoped>
