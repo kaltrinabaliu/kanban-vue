@@ -1,29 +1,37 @@
 <template>
-  <div class="single-table" @dragenter="handleDragEnter">
-    <div class="table-title" :style="{ backgroundColor: tableTitleColor }">
+  <div 
+    class="single-table" 
+    :style="{ border: isDraggingOver ? '5px solid rgb(68, 115, 243)' : '2px solid #616060' }"
+    @dragover="handleDragOver"
+    @dragleave="handleDragLeave"
+    @drop="handleDrop"
+    @dragenter="dragging && !tasks.length ? handleDragEnter($event, { tableIndex, taskIndex: 0 }) : undefined"
+  >
+    <div class="table-title" :style="{ backgroundColor: tableTitleColor() }">
       <h2>{{ status }}</h2>
     </div>
-    <div class="table-content" @dragover.prevent @dragleave="setHighlighted(false)">
-      <TaskComponent v-for="(task, taskIndex) in tasks.slice(0, getDisplayedTasksCount())" 
+    <div class="table-content">
+      <TaskComponent
+        v-for="(task, taskIndex) in tasks.slice(0, getDisplayedTasksCount())"
         :key="task.id"
-        :task="task" 
-        :tableIndex="tableIndex" 
-        :taskIndex="taskIndex" 
+        :task="task"
+        :tableIndex="tableIndex"
+        :taskIndex="taskIndex"
         :dragging="dragging"
-        :handleDragStart="handleDragStart" 
-        :handleDragEnter="handleDragEnter" 
-        :getStyles="getStyles" />
-      <button v-if="getDisplayedTasksCount() < tasks.length" @click="handleLoadMore" class="load-more">Load More</button>
+        :handleDragStart="handleDragStart"
+        :handleDragEnter="handleDragEnter"
+        :getStyles="getStyles"
+      />
+      <button v-if="getDisplayedTasksCount() < tasks.length" @click="handleLoadMore" type="button" class="load-more">Load More</button>
     </div>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue';
 import TaskComponent from './Task.vue';
-
+import {ref} from 'vue';
 export default {
-  name:"the-column",
+  name: "the-column",
   props: {
     status: String,
     tasks: Array,
@@ -31,93 +39,107 @@ export default {
     dragging: Boolean,
     handleDragEnter: Function,
     handleDragStart: Function,
-    getStyles: Function
+    getStyles: Function,
   },
   components: {
-    TaskComponent
+    TaskComponent,
   },
   setup(props) {
     const displayedTasks = ref({});
-    const highlighted = ref(false);
+    const isDraggingOver = ref(false);
 
-    const handleLoadMore = () => {
+    function handleLoadMore() {
       displayedTasks.value[props.tableIndex] = (displayedTasks.value[props.tableIndex] || 4) + 2;
-    };
+    }
 
-    const getDisplayedTasksCount = () => {
+    function handleDragOver(event) {
+      event.preventDefault();
+      isDraggingOver.value = true;
+    }
+
+    function handleDragLeave(event) {
+      const relatedTarget = event.relatedTarget;
+      const tableElement = event.currentTarget;
+      if (!tableElement.contains(relatedTarget)) {
+        isDraggingOver.value = false;
+      }
+    }
+
+    function handleDrop() {
+      isDraggingOver.value = false;
+    }
+
+    function getDisplayedTasksCount() {
       return displayedTasks.value[props.tableIndex] || 4;
-    };
+    }
 
-    const tableTitleColor = (() => {
+    function tableTitleColor() {
+      let color;
       switch (props.status) {
         case 'TO DO':
-          return 'red';
+          color = 'red';
+          break;
         case 'IN PROGRESS':
-          return 'green';
+          color = 'green';
+          break;
         case 'DONE':
-          return 'yellow';
+          color = 'yellow';
+          break;
         case 'FINAL':
-          return 'blue';
+          color = 'blue';
+          break;
         default:
-          return 'pink';
+          color = 'pink';
       }
-    })();
-
-    const setHighlighted = (value) => {
-      highlighted.value = value;
-    };
+      return color;
+    }
 
     return {
-      displayedTasks,
-      highlighted,
+      isDraggingOver,
       handleLoadMore,
+      handleDragOver,
+      handleDragLeave,
+      handleDrop,
       getDisplayedTasksCount,
-      tableTitleColor,
-      setHighlighted
+      tableTitleColor
     };
   }
 };
 </script>
-  
-  <style scoped>
-  .single-table {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    overflow: hidden;
-    border-radius: 10px;
-    border: 2px solid #616060;
-    height: 800px;
-    background-color: #dddedf;
-  }
-  
-  .table-title {
-    padding: 1rem;
-    text-align: center;
-    color: #f2f5f7;
-  }
-  
-  .table-content {
-    padding: 1rem;
-    background-color: #dddedf;
-    overflow-y: scroll;
-    scrollbar-width: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .table-content .load-more {
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  
-  .highlighted {
-    border: 2px solid rgb(137, 137, 138); 
-    border-radius: 5px;
-    background-color: rgb(199, 199, 199);
-    height: 800px;
-  }
-  </style>
+
+<style scoped>
+.single-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 2px solid #616060;
+  height: 800px;
+  background-color: #dddedf;
+}
+
+.table-title {
+  padding: 1rem;
+  text-align: center;
+  color: #f2f5f7;
+}
+
+.table-content {
+  padding: 1rem;
+  background-color: #dddedf;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.table-content .load-more {
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+</style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="single-task" :class="className" :draggable="true" @dragstart="onDragStartHandler"
+  <div :class="className" :draggable="true" @dragstart="onDragStartHandler"
     @dragenter="onDragEnterHandler">
     <h5 class="task-title">{{ task.title }}</h5>
     <p class="task-desc">{{ task.desc }}</p>
@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import {  computed } from 'vue';
 export default {
   name:"the-task",
   props: {
@@ -18,24 +19,27 @@ export default {
     handleDragEnter: Function,
     getStyles: Function
   },
-  computed: {
-    className() {
-      return this.dragging ? this.getStyles({ tableIndex: this.tableIndex, taskIndex: this.taskIndex }) : 'single-task';
+
+  setup(props){
+
+    const className = computed(() => {
+      return props.dragging ? props.getStyles({ tableIndex: props.tableIndex, taskIndex: props.taskIndex }) : 'single-task';
+      });
+   function onDragStartHandler(e) {
+    props.handleDragStart(e, { tableIndex: props.tableIndex, taskIndex: props.taskIndex });
     }
-  },
-  methods: {
-    onDragStartHandler(e) {
-      this.handleDragStart(e, { tableIndex: this.tableIndex, taskIndex: this.taskIndex });
-    },
-    onDragEnterHandler(event) {
-      if (this.dragging) {
-        console.log(this.task);
-        this.handleDragEnter(event, { tableIndex: this.tableIndex, taskIndex: this.taskIndex });
+  function  onDragEnterHandler(event) {
+      if (props.dragging) {
+        props.handleDragEnter(event, { tableIndex: props.tableIndex, taskIndex: props.taskIndex });
       }
-    },
-    onDropHandler() {
-      // Hiq klasën "current" kur task-u bëhet drop
-      this.$refs.task.classList.remove('current');
+      undefined;
+    }
+
+    return{
+className,
+onDragStartHandler,
+onDragEnterHandler
+
     }
   }
 };
@@ -69,7 +73,12 @@ export default {
   
   .current {
     background-color: #7e7e84; 
-    opacity: 1; 
+    opacity: 0.5; 
+    width: 100%;
+    padding: 2rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
   }
   
   .current .task-desc{
