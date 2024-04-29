@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted, watch  } from 'vue';
 import Column from './Column.vue';
 import { StatusEnum } from '../types/index'; 
 
@@ -30,7 +30,16 @@ export default {
     Column
   },
   setup(props) {
-    const dataLists = ref(props.data);
+    const dataLists = ref([]);
+
+onMounted(() => {
+  const savedData = localStorage.getItem('kanban_data');
+  if (savedData) {
+    dataLists.value = JSON.parse(savedData);
+  } else {
+    dataLists.value = props.data;
+  }
+});
     const dragging = ref(false);
 
     const dragItem = ref(null);
@@ -82,7 +91,9 @@ export default {
     }
     return 'single-task';
   };
-
+  watch(dataLists, (newValue) => {
+      localStorage.setItem('kanban_data', JSON.stringify(newValue));
+    });
     return {
       dataLists,
       dragging,

@@ -8,7 +8,8 @@
     @dragenter="dragging && !tasks.length ? handleDragEnter($event, { tableIndex, taskIndex: 0 }) : undefined"
   >
     <div class="table-title" :style="{ backgroundColor: tableTitleColor() }">
-      <h2>{{ status }}</h2>
+      <h2 :style="{ margin: '24px' }">{{ status }}</h2>
+<h2 class="tasks-length">[{{ tasks.length }}]</h2>
     </div>
     <div class="table-content">
       <TaskComponent
@@ -53,9 +54,37 @@ export default {
     }
 
     function handleDragOver(event) {
-      event.preventDefault();
-      isDraggingOver.value = true;
+  event.preventDefault();
+  isDraggingOver.value = true;
+  const target = event.target;
+
+  // Check if target exists
+  if (
+    target &&
+    !target.classList.contains("table-content") &&
+    isDraggingOver.value &&
+    props.dragging
+  ) {
+    const rect = target.getBoundingClientRect();
+    const distanceFromTop = event.clientY - rect.top;
+    const bottomMargin = rect.height * 0.6;
+
+    if (distanceFromTop >= rect.height - bottomMargin) {
+      const lastTask = target.querySelector('.table-content .single-task:last-child');
+      if (lastTask) {
+        const taskRect = lastTask.getBoundingClientRect();
+        const taskBottom = taskRect.bottom;
+        const nearBottom = event.clientY >= taskBottom;
+        if (nearBottom) {
+          // Insert after the last task
+          props.handleDragEnter(event, { tableIndex: props.tableIndex, taskIndex: props.tasks.length - 1 });
+          return;
+        }
+      }
     }
+  }
+}
+
 
     function handleDragLeave(event) {
       const relatedTarget = event.relatedTarget;
@@ -80,10 +109,10 @@ export default {
           color = 'red';
           break;
         case 'IN PROGRESS':
-          color = 'green';
+          color = '#9f950a';
           break;
         case 'DONE':
-          color = 'yellow';
+          color = 'green';
           break;
         case 'FINAL':
           color = 'blue';
@@ -123,6 +152,7 @@ export default {
   padding: 1rem;
   text-align: center;
   color: #f2f5f7;
+  display: flex;
 }
 
 .table-content {
@@ -142,4 +172,7 @@ export default {
   cursor: pointer;
 }
 
+.tasks-length{
+    margin-top: 20px;
+      }
 </style>
